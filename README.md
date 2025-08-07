@@ -1,26 +1,72 @@
-# 🚀 Task 3 - Infrastructure as Code (IaC) with Terraform
+# Task 3 - Infrastructure as Code (IaC) with Terraform and Docker
 
-## 📌 Description
-This task demonstrates how to provision and manage a **Docker container using Terraform**, showcasing the concept of Infrastructure as Code (IaC). We use the **Docker provider** to pull an image (`nginx:latest`) and run it as a container on a local EC2 instance.
+## 📌 Objective
 
----
-
-## 🎯 Objective
-To automate the provisioning of a local Docker container using Terraform.
+Provision a local Docker container using **Terraform** to understand Infrastructure as Code (IaC) concepts. This task automates container deployment without using manual Docker commands.
 
 ---
 
-## 🔧 Tools & Technologies
-- 🐳 Docker
-- 🛠️ Terraform
-- ☁️ AWS EC2 (Amazon Linux or Ubuntu)
-- 🔗 GitHub
+## 🛠 Tools Used
+
+- **Terraform** – For infrastructure automation
+- **Docker** – To run the container locally
+- **EC2 (Amazon Linux)** – As the base machine where everything is installed
 
 ---
 
-## 📁 Project Structure
+## 📁 Files in this Repository
 
-task3/
-├── main.tf # Terraform configuration
-├── README.md # Documentation
-└── execution_log.txt # (Optional) Terraform output logs
+| File          | Description                                      |
+|---------------|--------------------------------------------------|
+| `main.tf`     | Terraform configuration file                     |
+| `README.md`   | Documentation for the task                       |
+| `execution_log.txt` *(optional)* | Terraform output from apply/destroy |
+
+---
+
+## 🔧 Setup Steps (Executed on Fresh EC2)
+
+1. **Installed Docker**
+    ```bash
+    sudo yum install -y docker
+    sudo systemctl start docker
+    sudo usermod -aG docker ec2-user
+    ```
+
+2. **Installed Terraform**
+    ```bash
+    sudo yum install -y yum-utils
+    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+    sudo yum -y install terraform
+    ```
+
+3. **Wrote Terraform configuration (`main.tf`)** using Docker provider.
+
+---
+
+## 📄 main.tf Overview
+
+```hcl
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 2.20.0"
+    }
+  }
+}
+
+provider "docker" {}
+
+resource "docker_image" "nginx" {
+  name = "nginx:latest"
+}
+
+resource "docker_container" "nginx" {
+  name  = "nginx_container"
+  image = docker_image.nginx.latest
+  ports {
+    internal = 80
+    external = 8080
+  }
+}
